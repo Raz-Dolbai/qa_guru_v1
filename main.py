@@ -54,10 +54,10 @@ def register_user(user_data: User = Body()):
     if not user_data.email and not user_data.password:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-    if not user_data.email or user_data.email == "":
+    if not user_data.email:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-    if not user_data.password or user_data.password == "":
+    if not user_data.password:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing password"}')
 
@@ -74,10 +74,10 @@ def login_user(user_data: User = Body()):
     if not user_data.email and not user_data.password:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-    if not user_data.email or user_data.email == "":
+    if not user_data.email:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-    if not user_data.password or user_data.password == "":
+    if not user_data.password:
         return Response(status_code=400, media_type="application/json", content='{"error": "Missing password"}')
 
     elif user_data.email in users_bd:
