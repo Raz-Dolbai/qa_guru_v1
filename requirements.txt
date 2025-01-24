@@ -1,0 +1,7 @@
+email_validator==2.2.0
+fastapi==0.115.6
+fastapi-pagination==0.12.34
+jsondiff==2.2.1
+pydantic==2.10.5
+pytest==8.3.4
+python-dotenv==1.0.1

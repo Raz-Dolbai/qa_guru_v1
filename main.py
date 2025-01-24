@@ -1,117 +1,87 @@
 import random
-from fastapi import FastAPI, HTTPException, Body, Response
+import uvicorn
+import json
+from http import HTTPStatus
+from models.user import UserUpdate, SupportInfo, UserRegister, UserData, ResponseModel, User
+from fastapi import FastAPI, Body, Response
+from models.database_status import DatabaseStatus
+from models.paginate_model import PaginateModel
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 from datetime import datetime, timezone
-from fastapi.encoders import jsonable_encoder
+from fastapi_pagination import Page, add_pagination, paginate
 
 app = FastAPI()
+add_pagination(app)
+
+users: list[UserData] = []
+items = [
+    PaginateModel(id=el, job=random.choice(["CEO", "CTO", "CPO"]), name=random.choice(["Ivan", "Petr", "Vlodimir"]))
+    for el in
+    range(200)]
 
 
-class UserData(BaseModel):
-    id: int
-    email: str
-    first_name: str
-    last_name: str
-    avatar: str
+@app.get("/ping")
+def ping():
+    return Response(status_code=HTTPStatus.OK, media_type="application/json", content='{"message": "pong"}')
 
 
-class SupportData(BaseModel):
-    url: str
-    text: str
+@app.get("/health")
+def health():
+    return DatabaseStatus(status=bool(users))
 
 
-class ResponseModel(BaseModel):
-    data: UserData
-    support: SupportData
+@app.get("/api/users", response_model=Page[PaginateModel], status_code=HTTPStatus.OK)
+def get_users():
+    return paginate(items)
 
 
-class User(BaseModel):
-    email: str
-    password: str
-
-
-class UserUpdate(BaseModel):
-    job: str
-    name: str
-
-
-@app.get("/api/users/{user_id}", response_model=ResponseModel)
+@app.get("/api/users/{user_id}")
 def get_user(user_id: int):
-    # Mock data for demonstration purposes
-    users = {
-        2: {
-            "id": 2,
-            "email": "janet.weaver@reqres.in",
-            "first_name": "Janet",
-            "last_name": "Weaver",
-            "avatar": "https://reqres.in/img/faces/2-image.jpg",
-        }
-    }
-
-    support_info = {
-        "url": "https://contentcaddy.io?utm_source=reqres&utm_medium=json&utm_campaign=referral",
-        "text": "Tired of writing endless social media content? Let Content Caddy generate it for you.",
-    }
-
-    user = users.get(user_id)
-    if not user:
-        # todo improve exception
-        return Response(status_code=404, media_type="application/json",
+    custom = next((el for el in users if el["id"] == user_id), None)
+    support_info = SupportInfo(
+        url="https://contentcaddy.io?utm_source=reqres&utm_medium=json&utm_campaign=referral",
+        text="Tired of writing endless social media content? Let Content Caddy generate it for you.",
+    )
+    if not custom:
+        return Response(status_code=HTTPStatus.NOT_FOUND, media_type="application/json",
                         content='{}')
-        # raise HTTPException(status_code=404, detail={})
-
-    return {
-        "data": user,
-        "support": support_info,
-    }
+    return ResponseModel(data=custom, support=support_info)
 
 
-@app.post("/api/register")
-def register_user(user: User = Body()):
-    users = {"eve.holt@reqres.in": ""}
-    if (not user.email or user.email == "") and (not user.password or user.password == ""):
+@app.post("/api/register", status_code=HTTPStatus.OK)
+def register_user(user_data: User = Body()):
+    users_bd = ["eve.holt@reqres.in"]
+    if not user_data.email and not user_data.password:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-        # raise HTTPException(status_code=400, detail="Missing email or username")
-    if not user.email or user.email == "":
+    if not user_data.email or user_data.email == "":
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-    if not user.password or user.password == "":
+    if not user_data.password or user_data.password == "":
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing password"}')
-        # raise HTTPException(status_code=400, detail="Missing password")
 
-    elif user.email in users:
-        return {
-            "id": 4,
-            "token": "QpwL5tke4Pnpja7X4"
-        }
+    elif user_data.email in users_bd:
+        return UserRegister(id=random.randint(1, 100), token="QpwL5tke4Pnpja7X4")
     else:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Note: Only defined users succeed registration"}')
-        # raise HTTPException(status_code=400, detail="Note: Only defined users succeed registration")
 
 
 @app.post("/api/login")
-def login_user(user: User = Body()):
-    users = {"eve.holt@reqres.in": ""}
-    if (not user.email or user.email == "") and (not user.password or user.password == ""):
+def login_user(user_data: User = Body()):
+    users_bd = ["eve.holt@reqres.in"]
+    if not user_data.email and not user_data.password:
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-        # raise HTTPException(status_code=400, detail="Missing email or username")
-    if not user.email or user.email == "":
+    if not user_data.email or user_data.email == "":
         return Response(status_code=400, media_type="application/json",
                         content='{"error": "Missing email or username"}')
-        # raise HTTPException(status_code=400, detail="Missing email or username")
-    if not user.password or user.password == "":
+    if not user_data.password or user_data.password == "":
         return Response(status_code=400, media_type="application/json", content='{"error": "Missing password"}')
-        # raise HTTPException(status_code=400, detail="Missing password")
 
-    elif user.email in users:
-        return {
-            "token": "QpwL5tke4Pnpja7X4"
-        }
+    elif user_data.email in users_bd:
+        return UserRegister(token="QpwL5tke4Pnpja7X4")
     else:
         return Response(status_code=400, media_type="application/json", content='{"error": "user not found"}')
 
@@ -159,6 +129,8 @@ def delete_user():
 # uvicorn filename:app --reload
 
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    with open("users.json", encoding="utf-8") as f:
+        users = json.load(f)
+    for user in users:
+        UserData.model_validate(user)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
