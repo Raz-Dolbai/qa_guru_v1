@@ -15,7 +15,7 @@ def test_database_health(base_url):
     response = requests.get(base_url + endpoint)
     assert response.status_code == HTTPStatus.OK, f"Expected status code 200, but got {response.status_code}"
     body = response.json()
-    assert body["status"], f"Expected status True, but got {body['status']}"
+    assert body["database"], f"Expected status True, but got {body['status']}"
 
 
 def test_non_existent_endpoint(base_url):
