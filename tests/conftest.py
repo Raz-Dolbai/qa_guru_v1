@@ -4,6 +4,7 @@ import pytest
 import requests
 import json
 from faker import Faker
+from app.models.user import UserData, UserCreate
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -27,36 +28,37 @@ def base_url():
 
 
 @pytest.fixture(scope="function")
-def fake_user():
+def fake_user() -> UserData:
     """Возвращает фейкового юзера"""
     fake = Faker()
-    return {
+    fake_data = {
         "email": fake.email(),
         "first_name": fake.first_name(),
         "last_name": fake.last_name(),
         "avatar": fake.image_url(),
     }
+    return UserData(**fake_data)
 
 
 @pytest.fixture(scope="function")
-def create_fake_user(fake_user, base_url) -> dict:
-    response = requests.post(f"{base_url}/api/users", data=json.dumps(fake_user),
+def create_fake_user(fake_user, base_url) -> UserData:
+    response = requests.post(f"{base_url}/api/users", data=UserData.json(fake_user),
                              headers={"Content-Type": "application/json"})
     body = response.json()
-    yield body
+    yield UserData(**body)
     user_id = body["id"]
     requests.delete(f"{base_url}/api/users/{user_id}")
 
 
 @pytest.fixture(scope="function")
-def update_created_user(create_fake_user, base_url) -> dict:
-    user_id = create_fake_user["id"]
+def update_created_user(create_fake_user, base_url) -> UserData:
+    user_id = create_fake_user.id
     update_data = {"email": "blabla@ya.ru", "first_name": "Antonio", "last_name": "Banderas",
                    "avatar": 'https://picsum.photos/123/321'}
     response = requests.patch(f"{base_url}/api/users/{user_id}", data=json.dumps(update_data),
                               headers={"Content-Type": "application/json"})
     body = response.json()
-    yield body
+    yield UserData(**body)
     requests.delete(f"{base_url}/api/users/{user_id}")
 
 
