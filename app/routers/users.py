@@ -1,11 +1,6 @@
-import random
-from typing import Iterable, Type
-from fastapi import APIRouter, Response, HTTPException, Body, Query
+from typing import Iterable
+from fastapi import APIRouter, HTTPException
 from http import HTTPStatus
-from datetime import datetime, timezone
-from app.models.paginate_model import PaginateModel
-
-
 from app.database import users
 from app.models.user import SupportInfo, ResponseModel, User, UserRegister, UserUpdate, UserData, UserCreate
 
@@ -18,7 +13,7 @@ def get_users() -> Iterable[UserData]:
 
 
 @router.get("/{user_id}", status_code=HTTPStatus.OK)
-def get_user(user_id: int):
+def get_user(user_id: int) -> UserData:
     if user_id < 1:
         raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail="Invalid user")
     user = users.get_user(user_id)
@@ -47,6 +42,3 @@ def delete_user(user_id: int):
         raise HTTPException(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail="Invalid user")
     users.delete_user(user_id)
     return {"message": "user delete successful"}
-
-
-
