@@ -13,3 +13,4 @@ sqlmodel~=0.0.22
 uvicorn~=0.34.0
 requests~=2.32.3
 Faker~=35.0.0
+fastapi[standard]
