@@ -1,7 +1,7 @@
 on:
   pull_request:
     branches:
-      - guru_task_5
+      - main
 
 jobs:
   tests:
