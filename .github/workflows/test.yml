@@ -1,0 +1,21 @@
+on:
+  pull_request:
+    branches:
+      - guru_task_5
+
+jobs:
+  tests:
+    name: Test app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cahce: 'pip'
+      - run: pip install --upgrade -r requirements.txt
+      - run: docker compose up -d --build
+      - run: pytests tests
+
+      - run: docker compose logs app
+        if: always()
