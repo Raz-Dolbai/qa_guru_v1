@@ -7,6 +7,9 @@ jobs:
   tests:
     name: Test app
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: ci
+      POSTGRES_PASSWORD: ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -15,7 +18,7 @@ jobs:
           cahce: 'pip'
       - run: pip install --upgrade -r requirements.txt
       - run: docker compose up -d --build
-      - run: pytests tests
+      - run: pytest tests
 
       - run: docker compose logs app
         if: always()
