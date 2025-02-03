@@ -55,7 +55,7 @@ class TestUser:
             UserData.model_validate(user)
 
     def test_create_user(self, base_url, fake_user):
-        response = requests.post(f"{base_url}/api/users", data=UserCreate.json(fake_user),
+        response = requests.post(f"{base_url}/api/users", data=UserCreate.model_dump_json(fake_user),
                                  headers={"Content-Type": "application/json"})
         assert response.status_code == HTTPStatus.CREATED
         body = response.json()
@@ -129,7 +129,7 @@ class TestUser:
 
     @pytest.mark.parametrize("user_id", [0, "b", "blabla"])
     def test_delete_user_not_valid_id(self, base_url, user_id, fake_user):
-        response = requests.delete(f"{base_url}/api/users/{user_id}", data=UserData.json(fake_user))
+        response = requests.delete(f"{base_url}/api/users/{user_id}", data=UserData.model_dump_json(fake_user))
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
     def test_method_not_allowed(self, base_url):
