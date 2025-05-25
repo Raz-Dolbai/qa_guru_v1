@@ -2,7 +2,7 @@ import requests
 from pytest_voluptuous import S
 from voluptuous import Schema
 
-from tests.api_test_advanced_rest_api import BASE_URL
+BASE_URL = "https://reqres.in"
 
 response_list_users = Schema({
     "page": int,

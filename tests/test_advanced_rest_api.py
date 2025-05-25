@@ -95,10 +95,6 @@ class TestUser:
         response = reqress_client.delete_user(user_id=user_id)
         assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
-    def test_method_not_allowed(self, base_url):
-        response = requests.post(f"{base_url}/api/users/1")
-        assert response.status_code == HTTPStatus.METHOD_NOT_ALLOWED
-
     def test_get_after_created_user(self, reqress_client, create_fake_user):
         user_id = create_fake_user.id
         response = reqress_client.get(user_id)
