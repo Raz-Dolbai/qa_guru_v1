@@ -16,3 +16,4 @@ Faker~=35.0.0
 fastapi[standard]
 deepdiff~=8.5.0
 voluptuous~=0.15.2
+pytest-voluptuous~=1.2.0
