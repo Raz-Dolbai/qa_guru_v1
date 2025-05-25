@@ -14,3 +14,5 @@ uvicorn~=0.34.0
 requests~=2.32.3
 Faker~=35.0.0
 fastapi[standard]
+deepdiff~=8.5.0
+voluptuous~=0.15.2

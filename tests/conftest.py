@@ -5,6 +5,9 @@ import requests
 import json
 from faker import Faker
 from app.models.user import UserData, UserCreate
+from clients.reqress_client import Reqres
+
+pytest_plugins = ["fixture_sessions"]
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -43,7 +46,7 @@ def fake_user() -> UserData:
 @pytest.fixture(scope="function")
 def create_fake_user(fake_user, base_url) -> UserData:
     response = requests.post(f"{base_url}/api/users", data=UserData.json(fake_user),
-                             headers={"Content-Type": "application/json"})
+                             headers={"Content-Type": "application/json", "x-api-key": "reqres-free-v1"})
     body = response.json()
     yield UserData(**body)
     user_id = body["id"]
@@ -68,3 +71,17 @@ def max_users_id(base_url) -> id:
     body = response.json()
     max_id = max(map(lambda x: x["id"], body))
     return max_id
+
+
+def pytest_addoption(parser):
+    parser.addoption("--env", default="dev")
+
+
+@pytest.fixture(scope="session")
+def env(request):
+    return request.config.getoption("--env")
+
+
+@pytest.fixture(scope="session")
+def reqress_client(env):
+    return Reqres(env=env)
