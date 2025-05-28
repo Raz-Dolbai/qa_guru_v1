@@ -28,12 +28,6 @@ class TestUser:
         for user_id in user_ids:
             requests.delete(f"{base_url}/api/users/{user_id}")
 
-    @pytest.fixture
-    def users(self, base_url):
-        response = requests.get(f"{base_url}/api/users/")
-        assert response.status_code == HTTPStatus.OK
-        return response.json()
-
     @pytest.mark.usefixtures("fill_test_data")
     def test_users(self, base_url):
         response = requests.get(f"{base_url}/api/users")

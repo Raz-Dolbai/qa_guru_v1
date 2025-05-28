@@ -1,11 +1,9 @@
-import os
 import dotenv
 import pytest
-import requests
-import json
 from faker import Faker
-from app.models.user import UserData, UserCreate
-from clients.reqress_client import Reqres
+from requests import Response
+
+from app.models.user import UserData
 
 pytest_plugins = ["fixture_sessions"]
 
@@ -13,21 +11,6 @@ pytest_plugins = ["fixture_sessions"]
 @pytest.fixture(scope="session", autouse=True)
 def load_env():
     dotenv.load_dotenv()  # загружаем переменные из .env
-
-
-@pytest.fixture(scope="session")
-def base_url():
-    """Возвращает url на котором будем проводить тестирование
-    - прокинуть переменную из .env (прим. export ENV=PROD)"""
-    try:
-        get_env_value = os.environ["ENV"]  # пытаемся прочитать переменную ENV
-    except KeyError:
-        get_env_value = "TEST"  # если переменной ENV нет, default value = TEST
-    if os.getenv(
-            get_env_value):  # если переменная get_env_value есть в .env возвращаем ее, если нет возвращаем Exception
-        return os.getenv(get_env_value)
-    else:
-        raise Exception(f"Unknown value of ENV variable {get_env_value}")
 
 
 @pytest.fixture(scope="function")
@@ -44,33 +27,37 @@ def fake_user() -> UserData:
 
 
 @pytest.fixture(scope="function")
-def create_fake_user(fake_user, base_url) -> UserData:
-    response = requests.post(f"{base_url}/api/users", data=UserData.json(fake_user),
-                             headers={"Content-Type": "application/json", "x-api-key": "reqres-free-v1"})
+def create_fake_user(fake_user, reqress_client) -> UserData:
+    response = reqress_client.create_user(UserData.model_dump(fake_user))
     body = response.json()
     yield UserData(**body)
     user_id = body["id"]
-    requests.delete(f"{base_url}/api/users/{user_id}")
+    reqress_client.delete_user(user_id)
 
 
 @pytest.fixture(scope="function")
-def update_created_user(create_fake_user, base_url) -> UserData:
+def update_created_user(create_fake_user, reqress_client) -> UserData:
     user_id = create_fake_user.id
     update_data = {"email": "blabla@ya.ru", "first_name": "Antonio", "last_name": "Banderas",
                    "avatar": 'https://picsum.photos/123/321'}
-    response = requests.patch(f"{base_url}/api/users/{user_id}", data=json.dumps(update_data),
-                              headers={"Content-Type": "application/json"})
+    response = reqress_client.update_user(update_data, user_id)
     body = response.json()
     yield UserData(**body)
-    requests.delete(f"{base_url}/api/users/{user_id}")
+    reqress_client.delete_user(user_id)
 
 
 @pytest.fixture(scope="function")
-def max_users_id(base_url) -> id:
-    response = requests.get(f"{base_url}/api/users/")
+def max_users_id(reqress_client) -> id:
+    response = reqress_client.get_users()
     body = response.json()
     max_id = max(map(lambda x: x["id"], body))
     return max_id
+
+
+@pytest.fixture(scope="function")
+def users(reqress_client) -> Response:
+    response = reqress_client.get_users()
+    return response
 
 
 def pytest_addoption(parser):
@@ -80,8 +67,3 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="session")
 def env(request):
     return request.config.getoption("--env")
-
-
-@pytest.fixture(scope="session")
-def reqress_client(env):
-    return Reqres(env=env)

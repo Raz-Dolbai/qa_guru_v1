@@ -1,8 +1,6 @@
 from base_session import BaseSession
 from config import Server
 from requests import Response
-from models.object_models import ResponseGetUser
-from app.models.user import UserData, UserCreate, UserUpdate
 
 
 class Reqres:
@@ -12,6 +10,10 @@ class Reqres:
 
     def get_user(self, user_id: int) -> Response:
         response = self.session.get(f"/api/users/{user_id}")
+        return response
+
+    def get_users(self) -> Response:
+        response = self.session.get(f"/api/users")
         return response
 
     def create_user(self, payload: dict) -> Response:
