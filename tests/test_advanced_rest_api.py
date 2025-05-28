@@ -56,7 +56,7 @@ class TestUser:
         user_id = create_fake_user.id
         update_data = {"last_name": "Banderas"}
         response = reqress_client.update_user(payload=update_data, user_id=user_id)
-        assert response.status_code == HTTPStatus.CREATED
+        assert response.status_code == HTTPStatus.OK
         result = UserData.model_validate(**response.json())
         assert result.id == user_id
         assert result.email == create_fake_user.email

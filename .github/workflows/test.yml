@@ -20,9 +20,10 @@ jobs:
       - run: docker compose build
       - run: docker compose up -d
       - run: sleep 5
-      - run: pytest tests --junit-xml=test-results.xml
+      - run: pytest --env=prod tests/test_advanced_rest_api.py  --junit-xml=test-results.xml
         env:
           TEST: http://0.0.0.0:8000
+          PROD: https://reqres.in
 
       - run: docker compose logs app
         if: always()
